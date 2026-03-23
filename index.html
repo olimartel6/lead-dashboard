@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lead Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,8 +17,7 @@
   --radius: 14px; --font: 'Inter', system-ui, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
-.container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 .hidden { display: none !important; }
 
 /* Login */
@@ -27,443 +26,360 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .login-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
 .login-card h1 span { color: var(--primary-light); }
 .login-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 28px; }
-.input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 14px; margin-bottom: 12px; }
-.input:focus { outline: none; border-color: var(--primary); }
+.input { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 15px; margin-bottom: 12px; }
+.input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
 .input::placeholder { color: var(--text-muted); }
-.btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-primary { background: var(--primary); color: white; }
 .btn-primary:hover { background: #7C3AED; }
 .btn-secondary { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); margin-top: 8px; }
 .btn-small { width: auto; padding: 8px 16px; font-size: 12px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .error-msg { background: var(--danger-light); color: var(--danger); padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
-.success-msg { background: var(--success-light); color: var(--success); padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
 
-/* Header */
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.header h1 { font-size: 22px; font-weight: 800; }
-.header h1 span { color: var(--primary-light); }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.user-badge { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--text-light); }
-.admin-badge { background: var(--primary-glow); color: var(--primary-light); border: 1px solid rgba(139,92,246,0.3); }
+/* App shell */
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+.page { padding: 20px 16px; padding-bottom: 90px; }
 
-/* Stats */
-.stats { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; text-align: center; flex: 1; min-width: 80px; }
-.stat-num { font-size: 22px; font-weight: 800; }
-.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+/* Top bar */
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+.topbar h1 { font-size: 20px; font-weight: 800; }
+.topbar h1 span { color: var(--primary-light); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.user-pill { background: var(--elevated); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 11px; color: var(--text-light); font-weight: 600; }
+.admin-pill { background: var(--primary-glow); color: var(--primary-light); border-color: rgba(139,92,246,0.3); }
+.logout-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: var(--font); }
 
-/* Tabs */
-.tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--elevated); padding: 4px; border-radius: 10px; }
-.tab { flex: 1; padding: 10px; border: none; border-radius: 8px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; }
-.tab.active { background: var(--card); color: var(--text); }
+/* Stats row */
+.stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; flex: 1; }
+.stat-num { font-size: 20px; font-weight: 800; }
+.stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
 
-/* Filters */
-.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.filter-btn { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; color: var(--text-light); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-.search { width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 13px; margin-bottom: 16px; }
+/* Sub-filters (pills) */
+.sub-filters { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.sub-filter { white-space: nowrap; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: var(--elevated); color: var(--text-muted); border: 1px solid var(--border); }
+.sub-filter.active { background: var(--primary); color: white; border-color: var(--primary); }
+.sub-filter .count { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 8px; font-size: 10px; margin-left: 4px; background: rgba(255,255,255,0.15); }
+
+/* Search */
+.search { width: 100%; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 14px; margin-bottom: 12px; }
 .search:focus { outline: none; border-color: var(--primary); }
 .search::placeholder { color: var(--text-muted); }
 
-/* Lead Cards */
-.lead-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 10px; transition: all 0.2s; }
-.lead-card:hover { border-color: rgba(139,92,246,0.3); }
-.lead-card.status-emailed { border-left: 3px solid var(--warning); }
-.lead-card.status-replied { border-left: 3px solid var(--primary); }
-.lead-card.status-sold { border-left: 3px solid var(--success); opacity: 0.7; }
-.lead-card.status-rejected { border-left: 3px solid var(--danger); opacity: 0.5; }
+/* Lead card */
+.lead-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; transition: all 0.15s; }
+.lead-card:active { transform: scale(0.98); }
+.lead-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.lead-name { font-size: 15px; font-weight: 700; }
+.lead-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.lead-score { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.score-low { background: var(--danger-light); color: var(--danger); }
+.score-med { background: var(--warning-light); color: var(--warning); }
 
-.lead-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.lead-name { font-size: 16px; font-weight: 700; }
-.lead-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.lead-score { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-.score-bad { background: var(--danger-light); color: var(--danger); }
-.score-ok { background: var(--warning-light); color: var(--warning); }
+.lead-contact { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: 12px; color: var(--text-light); }
+.lead-contact a { color: var(--primary-light); text-decoration: none; }
 
-.lead-info { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; font-size: 12px; color: var(--text-light); }
-.lead-info a { color: var(--primary-light); text-decoration: none; }
+.lead-btns { display: flex; gap: 6px; margin-bottom: 10px; }
+.lead-btn { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; font-family: var(--font); }
+.btn-demo { background: var(--primary-glow); color: var(--primary-light); }
+.btn-claim { background: var(--primary); color: white; }
+.btn-ghost { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); }
 
-.lead-links { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-.link-btn { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; }
-.link-demo { background: var(--primary-glow); color: var(--primary-light); }
-.link-site { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); }
+/* Expandable sections */
+.expand-btn { background: none; border: none; color: var(--primary-light); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; margin-right: 12px; }
+.expand-content { background: var(--elevated); border-radius: 10px; padding: 14px; margin-top: 8px; margin-bottom: 8px; }
+.expand-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.expand-subject { font-size: 13px; font-weight: 600; color: var(--primary-light); margin-bottom: 6px; }
+.expand-body { font-size: 12px; color: var(--text-light); line-height: 1.6; white-space: pre-wrap; }
+.copy-btn { margin-top: 8px; padding: 6px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); color: var(--text-light); font-family: var(--font); font-size: 11px; font-weight: 600; cursor: pointer; }
 
-.collapsible { margin-bottom: 8px; }
-.collapsible-toggle { background: none; border: none; color: var(--primary-light); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; }
-.collapsible-content { background: var(--elevated); border-radius: 10px; padding: 14px; margin-top: 6px; }
-.email-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.email-subject { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--primary-light); }
-.email-body { font-size: 12px; color: var(--text-light); line-height: 1.6; white-space: pre-wrap; }
+/* Status actions in my leads */
+.status-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.status-btn { padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; background: var(--elevated); color: var(--text-muted); border: 1px solid var(--border); }
+.status-btn:active { transform: scale(0.95); }
+.status-btn.s-emailed { background: var(--warning-light); color: var(--warning); border-color: rgba(245,158,11,0.3); }
+.status-btn.s-replied { background: var(--primary-glow); color: var(--primary-light); border-color: rgba(139,92,246,0.3); }
+.status-btn.s-sold { background: var(--success-light); color: var(--success); border-color: rgba(16,185,129,0.3); }
+.status-btn.s-rejected { background: var(--danger-light); color: var(--danger); border-color: rgba(239,68,68,0.3); }
 
-.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.status-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--elevated); color: var(--text-light); font-family: var(--font); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.status-btn:hover { border-color: var(--primary); }
-.status-btn.active-emailed { background: var(--warning-light); color: var(--warning); border-color: var(--warning); }
-.status-btn.active-replied { background: var(--primary-glow); color: var(--primary-light); border-color: var(--primary); }
-.status-btn.active-sold { background: var(--success-light); color: var(--success); border-color: var(--success); }
-.status-btn.active-rejected { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+/* Bottom nav */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(11,13,19,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; border-top: 1px solid var(--border); padding: 8px 0; padding-bottom: max(8px, env(safe-area-inset-bottom)); z-index: 100; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: none; border: none; font-family: var(--font); letter-spacing: 0.3px; text-transform: uppercase; }
+.nav-item.active { color: var(--primary-light); }
+.nav-icon { font-size: 20px; }
+.nav-badge { background: var(--primary); color: white; font-size: 10px; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 9px; position: absolute; top: 2px; right: calc(50% - 20px); }
+.nav-item { position: relative; }
 
-.assigned-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary-light); }
-
-/* Admin: Sellers Table */
-.seller-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+/* Seller list (admin) */
+.seller-row { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .seller-name { font-weight: 600; font-size: 14px; }
-.seller-email { font-size: 12px; color: var(--text-muted); }
-.seller-stats { display: flex; gap: 12px; font-size: 12px; }
-.seller-stat { text-align: center; }
-.seller-stat-num { font-weight: 700; }
+.seller-email { font-size: 11px; color: var(--text-muted); }
 
-@media (max-width: 600px) {
-  .header { flex-direction: column; align-items: flex-start; }
-  .stats { flex-wrap: wrap; }
-  .stat { min-width: 70px; }
-}
+.empty { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 14px; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="login-page" class="login-page">
   <div class="login-card">
     <h1>Lead <span>Dashboard</span></h1>
     <p>Connectez-vous pour accéder aux leads</p>
     <div id="login-error" class="error-msg hidden"></div>
-    <div id="login-mode-signin">
+    <div id="mode-signin">
       <input type="email" class="input" id="login-email" placeholder="Email">
       <input type="password" class="input" id="login-password" placeholder="Mot de passe">
-      <button class="btn btn-primary" onclick="signIn()">Connexion</button>
-      <button class="btn btn-secondary" onclick="showSignup()">Créer un compte vendeur</button>
+      <button class="btn btn-primary" onclick="doSignIn()">Connexion</button>
+      <button class="btn btn-secondary" onclick="showMode('signup')">Créer un compte vendeur</button>
     </div>
-    <div id="login-mode-signup" class="hidden">
+    <div id="mode-signup" class="hidden">
       <input type="text" class="input" id="signup-name" placeholder="Votre nom">
       <input type="email" class="input" id="signup-email" placeholder="Email">
-      <input type="password" class="input" id="signup-password" placeholder="Mot de passe (min 6 car.)">
-      <button class="btn btn-primary" onclick="signUp()">Créer le compte</button>
-      <button class="btn btn-secondary" onclick="showSignin()">Retour à la connexion</button>
+      <input type="password" class="input" id="signup-password" placeholder="Mot de passe (min 6)">
+      <button class="btn btn-primary" onclick="doSignUp()">Créer le compte</button>
+      <button class="btn btn-secondary" onclick="showMode('signin')">Retour</button>
     </div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard-page" class="container hidden">
-  <div class="header">
-    <h1>Lead <span>Dashboard</span></h1>
-    <div class="header-right">
-      <span class="user-badge" id="user-badge"></span>
-      <button class="btn btn-small btn-secondary" onclick="signOut()">Déconnexion</button>
-    </div>
-  </div>
-
-  <div class="stats" id="stats-bar"></div>
-
-  <!-- Admin tabs -->
-  <div class="tabs hidden" id="admin-tabs">
-    <button class="tab active" onclick="setTab('leads')">Leads</button>
-    <button class="tab" onclick="setTab('sellers')">Vendeurs</button>
-  </div>
-
-  <!-- Leads view -->
-  <div id="tab-leads">
-    <input type="text" class="search" placeholder="Chercher un lead..." oninput="renderLeads()">
-    <div class="filters">
-      <button class="filter-btn active" onclick="setFilter('all')">Tous</button>
-      <button class="filter-btn" onclick="setFilter('available')">Disponibles</button>
-      <button class="filter-btn" onclick="setFilter('mine')">Mes leads</button>
-      <button class="filter-btn" onclick="setFilter('emailed')">Envoyés</button>
-      <button class="filter-btn" onclick="setFilter('replied')">Répondus</button>
-      <button class="filter-btn" onclick="setFilter('sold')">Vendus</button>
-    </div>
-    <div id="leads-container"></div>
-  </div>
-
-  <!-- Sellers view (admin only) -->
-  <div id="tab-sellers" class="hidden">
-    <h2 style="font-size:18px;margin-bottom:16px">Vendeurs</h2>
-    <div id="sellers-container"></div>
-  </div>
+<div id="app" class="app hidden">
+  <div class="page" id="page-content"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-available" onclick="navigate('available')">
+      <span class="nav-icon">📋</span> Disponibles
+      <span class="nav-badge hidden" id="badge-available"></span>
+    </button>
+    <button class="nav-item" id="nav-mine" onclick="navigate('mine')">
+      <span class="nav-icon">📁</span> Mes leads
+      <span class="nav-badge hidden" id="badge-mine"></span>
+    </button>
+    <button class="nav-item hidden" id="nav-admin" onclick="navigate('admin')">
+      <span class="nav-icon">👑</span> Admin
+    </button>
+  </nav>
 </div>
 
 <script>
-var supabase = window.supabase.createClient(
+var SB = window.supabase.createClient(
   'https://ybmzhztsyyrpxgsempzz.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibXpoenRzeXlycHhnc2VtcHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTU0MTgsImV4cCI6MjA4OTI3MTQxOH0.MBjRFHrF1viOaV1pJqNnQjxEk7mpzJo-DksHtbCk-ug'
 );
 
-var currentUser = null;
-var currentSeller = null;
-var leads = [];
-var sellers = [];
-var currentFilter = 'all';
-var currentTab = 'leads';
+var user = null, seller = null, leads = [], sellers = [];
+var currentPage = 'available', mineFilter = 'all';
 
 // Auth
-async function signIn() {
-  var email = document.getElementById('login-email').value;
-  var pw = document.getElementById('login-password').value;
-  document.getElementById('login-error').classList.add('hidden');
-  var r = await supabase.auth.signInWithPassword({ email: email, password: pw });
-  if (r.error) {
-    document.getElementById('login-error').textContent = r.error.message;
-    document.getElementById('login-error').classList.remove('hidden');
-  }
+function showMode(m) {
+  document.getElementById('mode-signin').classList.toggle('hidden', m !== 'signin');
+  document.getElementById('mode-signup').classList.toggle('hidden', m !== 'signup');
 }
 
-async function signUp() {
-  var name = document.getElementById('signup-name').value;
-  var email = document.getElementById('signup-email').value;
-  var pw = document.getElementById('signup-password').value;
+async function doSignIn() {
+  var e = document.getElementById('login-email').value;
+  var p = document.getElementById('login-password').value;
   document.getElementById('login-error').classList.add('hidden');
+  var r = await SB.auth.signInWithPassword({ email: e, password: p });
+  if (r.error) { document.getElementById('login-error').textContent = r.error.message; document.getElementById('login-error').classList.remove('hidden'); }
+}
 
-  var r = await supabase.auth.signUp({ email: email, password: pw });
+async function doSignUp() {
+  var n = document.getElementById('signup-name').value;
+  var e = document.getElementById('signup-email').value;
+  var p = document.getElementById('signup-password').value;
+  document.getElementById('login-error').classList.add('hidden');
+  var r = await SB.auth.signUp({ email: e, password: p });
   if (r.error) {
-    // Try signin if already exists
-    var r2 = await supabase.auth.signInWithPassword({ email: email, password: pw });
-    if (r2.error) {
-      document.getElementById('login-error').textContent = r.error.message;
-      document.getElementById('login-error').classList.remove('hidden');
-    }
+    var r2 = await SB.auth.signInWithPassword({ email: e, password: p });
+    if (r2.error) { document.getElementById('login-error').textContent = r.error.message; document.getElementById('login-error').classList.remove('hidden'); }
     return;
   }
-
   if (r.data.user) {
-    // Create seller profile
-    await supabase.from('lead_sellers').upsert({ id: r.data.user.id, email: email, name: name, role: 'seller' });
-    // Try login right away
-    if (!r.data.session) {
-      await supabase.auth.signInWithPassword({ email: email, password: pw });
-    }
+    await SB.from('lead_sellers').upsert({ id: r.data.user.id, email: e, name: n, role: 'seller' });
+    if (!r.data.session) await SB.auth.signInWithPassword({ email: e, password: p });
   }
 }
 
-function showSignup() {
-  document.getElementById('login-mode-signin').classList.add('hidden');
-  document.getElementById('login-mode-signup').classList.remove('hidden');
-}
-function showSignin() {
-  document.getElementById('login-mode-signup').classList.add('hidden');
-  document.getElementById('login-mode-signin').classList.remove('hidden');
-}
-
-async function signOut() {
-  await supabase.auth.signOut();
-  location.reload();
-}
-
-// Init
-supabase.auth.onAuthStateChange(async function(event, session) {
+SB.auth.onAuthStateChange(async function(ev, session) {
   if (session && session.user) {
-    currentUser = session.user;
+    user = session.user;
     document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('dashboard-page').classList.remove('hidden');
+    document.getElementById('app').classList.remove('hidden');
     await loadSeller();
     await loadData();
+    render();
   } else {
     document.getElementById('login-page').classList.remove('hidden');
-    document.getElementById('dashboard-page').classList.add('hidden');
+    document.getElementById('app').classList.add('hidden');
   }
 });
 
 async function loadSeller() {
-  var r = await supabase.from('lead_sellers').select('*').eq('id', currentUser.id).single();
-  if (r.data) {
-    currentSeller = r.data;
-    var badge = currentSeller.name + (currentSeller.role === 'admin' ? ' (Admin)' : '');
-    document.getElementById('user-badge').textContent = badge;
-    if (currentSeller.role === 'admin') {
-      document.getElementById('user-badge').classList.add('admin-badge');
-      document.getElementById('admin-tabs').classList.remove('hidden');
-    }
-  } else {
-    // Create seller profile if missing
-    await supabase.from('lead_sellers').upsert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'seller' });
-    await loadSeller();
+  var r = await SB.from('lead_sellers').select('*').eq('id', user.id).single();
+  if (r.data) { seller = r.data; }
+  else {
+    await SB.from('lead_sellers').upsert({ id: user.id, email: user.email, name: user.email.split('@')[0], role: 'seller' });
+    var r2 = await SB.from('lead_sellers').select('*').eq('id', user.id).single();
+    seller = r2.data;
   }
+  if (seller && seller.role === 'admin') document.getElementById('nav-admin').classList.remove('hidden');
 }
 
 async function loadData() {
-  var r = await supabase.from('lead_businesses').select('*').order('created_at', { ascending: false });
+  var r = await SB.from('lead_businesses').select('*').order('created_at', { ascending: false });
   leads = r.data || [];
-  if (currentSeller && currentSeller.role === 'admin') {
-    var s = await supabase.from('lead_sellers').select('*');
+  if (seller && seller.role === 'admin') {
+    var s = await SB.from('lead_sellers').select('*');
     sellers = s.data || [];
   }
+}
+
+function navigate(page) {
+  currentPage = page;
+  mineFilter = 'all';
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('nav-' + page).classList.add('active');
   render();
 }
 
-// Tabs
-function setTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)); });
-  document.getElementById('tab-leads').classList.toggle('hidden', tab !== 'leads');
-  document.getElementById('tab-sellers').classList.toggle('hidden', tab !== 'sellers');
-  render();
-}
-
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b,i) {
-    var filters = ['all','available','mine','emailed','replied','sold'];
-    b.classList.toggle('active', filters[i] === f);
-  });
-  renderLeads();
-}
+function setMineFilter(f) { mineFilter = f; render(); }
 
 function render() {
-  renderStats();
-  renderLeads();
-  if (currentTab === 'sellers') renderSellers();
+  var avail = leads.filter(function(l) { return l.status === 'available'; }).length;
+  var mine = leads.filter(function(l) { return l.assigned_to === user.id; }).length;
+
+  var ba = document.getElementById('badge-available');
+  ba.textContent = avail; ba.classList.toggle('hidden', avail === 0);
+  var bm = document.getElementById('badge-mine');
+  bm.textContent = mine; bm.classList.toggle('hidden', mine === 0);
+
+  if (currentPage === 'available') renderAvailable();
+  else if (currentPage === 'mine') renderMine();
+  else if (currentPage === 'admin') renderAdmin();
 }
 
-function renderStats() {
-  var total = leads.length;
-  var available = leads.filter(function(l) { return l.status === 'available'; }).length;
-  var emailed = leads.filter(function(l) { return l.status === 'emailed'; }).length;
-  var sold = leads.filter(function(l) { return l.status === 'sold'; }).length;
-  var mine = leads.filter(function(l) { return l.assigned_to === currentUser.id; }).length;
+function renderAvailable() {
+  var avail = leads.filter(function(l) { return l.status === 'available'; });
+  var h = '<div class="topbar"><h1>Lead <span>Dashboard</span></h1><div class="topbar-right"><span class="user-pill' + (seller && seller.role === 'admin' ? ' admin-pill' : '') + '">' + (seller ? seller.name : '') + '</span><button class="logout-btn" onclick="SB.auth.signOut().then(function(){location.reload()})">Déco</button></div></div>';
 
-  document.getElementById('stats-bar').innerHTML =
-    '<div class="stat"><div class="stat-num">' + total + '</div><div class="stat-label">Total</div></div>' +
-    '<div class="stat"><div class="stat-num" style="color:var(--primary-light)">' + available + '</div><div class="stat-label">Disponibles</div></div>' +
-    '<div class="stat"><div class="stat-num" style="color:var(--warning)">' + mine + '</div><div class="stat-label">Mes leads</div></div>' +
-    '<div class="stat"><div class="stat-num" style="color:var(--success)">' + sold + '</div><div class="stat-label">Vendus</div></div>';
+  h += '<div class="stats"><div class="stat"><div class="stat-num" style="color:var(--primary-light)">' + avail.length + '</div><div class="stat-label">Disponibles</div></div>';
+  h += '<div class="stat"><div class="stat-num" style="color:var(--warning)">' + leads.filter(function(l){return l.assigned_to===user.id}).length + '</div><div class="stat-label">Mes leads</div></div>';
+  h += '<div class="stat"><div class="stat-num" style="color:var(--success)">' + leads.filter(function(l){return l.status==='sold'}).length + '</div><div class="stat-label">Vendus</div></div></div>';
+
+  h += '<input type="text" class="search" placeholder="Chercher..." oninput="render()" id="search-input">';
+
+  var query = (document.getElementById('search-input') || {}).value || '';
+  var filtered = avail.filter(function(l) { return !query || l.name.toLowerCase().includes(query.toLowerCase()); });
+
+  if (filtered.length === 0) { h += '<div class="empty">Aucun lead disponible</div>'; }
+  else { filtered.forEach(function(l) { h += renderLeadCard(l, 'available'); }); }
+
+  document.getElementById('page-content').innerHTML = h;
 }
 
-function renderLeads() {
-  var query = (document.querySelector('.search') || {}).value || '';
-  query = query.toLowerCase();
+function renderMine() {
+  var mine = leads.filter(function(l) { return l.assigned_to === user.id; });
+  var h = '<div class="topbar"><h1>Mes <span>Leads</span></h1><div class="topbar-right"><span class="user-pill">' + (seller ? seller.name : '') + '</span></div></div>';
 
-  var filtered = leads.filter(function(l) {
-    var matchSearch = !query || l.name.toLowerCase().includes(query) || (l.industry || '').toLowerCase().includes(query);
-    if (currentFilter === 'all') return matchSearch;
-    if (currentFilter === 'available') return matchSearch && l.status === 'available';
-    if (currentFilter === 'mine') return matchSearch && l.assigned_to === currentUser.id;
-    if (currentFilter === 'emailed') return matchSearch && l.status === 'emailed';
-    if (currentFilter === 'replied') return matchSearch && l.status === 'replied';
-    if (currentFilter === 'sold') return matchSearch && l.status === 'sold';
-    return matchSearch;
+  // Counts per status
+  var counts = { all: mine.length, assigned: 0, emailed: 0, replied: 0, sold: 0, rejected: 0 };
+  mine.forEach(function(l) { if (counts[l.status] !== undefined) counts[l.status]++; });
+
+  h += '<div class="sub-filters">';
+  h += '<div class="sub-filter' + (mineFilter === 'all' ? ' active' : '') + '" onclick="setMineFilter(\'all\')">Tous<span class="count">' + counts.all + '</span></div>';
+  h += '<div class="sub-filter' + (mineFilter === 'assigned' ? ' active' : '') + '" onclick="setMineFilter(\'assigned\')">Nouveaux<span class="count">' + counts.assigned + '</span></div>';
+  h += '<div class="sub-filter' + (mineFilter === 'emailed' ? ' active' : '') + '" onclick="setMineFilter(\'emailed\')">Envoyés<span class="count">' + counts.emailed + '</span></div>';
+  h += '<div class="sub-filter' + (mineFilter === 'replied' ? ' active' : '') + '" onclick="setMineFilter(\'replied\')">Répondus<span class="count">' + counts.replied + '</span></div>';
+  h += '<div class="sub-filter' + (mineFilter === 'sold' ? ' active' : '') + '" onclick="setMineFilter(\'sold\')">Vendus<span class="count">' + counts.sold + '</span></div>';
+  h += '<div class="sub-filter' + (mineFilter === 'rejected' ? ' active' : '') + '" onclick="setMineFilter(\'rejected\')">Rejetés<span class="count">' + counts.rejected + '</span></div>';
+  h += '</div>';
+
+  var filtered = mineFilter === 'all' ? mine : mine.filter(function(l) { return l.status === mineFilter; });
+
+  if (filtered.length === 0) { h += '<div class="empty">' + (mine.length === 0 ? 'Aucun lead pris. Va dans Disponibles!' : 'Aucun lead dans cette catégorie') + '</div>'; }
+  else { filtered.forEach(function(l) { h += renderLeadCard(l, 'mine'); }); }
+
+  document.getElementById('page-content').innerHTML = h;
+}
+
+function renderAdmin() {
+  var h = '<div class="topbar"><h1>Admin <span>Panel</span></h1></div>';
+  h += '<div class="stats"><div class="stat"><div class="stat-num">' + leads.length + '</div><div class="stat-label">Total leads</div></div>';
+  h += '<div class="stat"><div class="stat-num">' + sellers.length + '</div><div class="stat-label">Vendeurs</div></div>';
+  h += '<div class="stat"><div class="stat-num" style="color:var(--success)">' + leads.filter(function(l){return l.status==='sold'}).length + '</div><div class="stat-label">Vendus</div></div></div>';
+
+  h += '<h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text-light)">VENDEURS</h3>';
+  sellers.forEach(function(s) {
+    var sl = leads.filter(function(l){return l.assigned_to===s.id});
+    var sent = sl.filter(function(l){return['emailed','replied','sold'].includes(l.status)}).length;
+    var sold = sl.filter(function(l){return l.status==='sold'}).length;
+    h += '<div class="seller-row"><div><div class="seller-name">' + s.name + (s.role==='admin'?' 👑':'') + '</div><div class="seller-email">' + s.email + '</div></div>';
+    h += '<div style="display:flex;gap:16px;font-size:12px;text-align:center"><div><div style="font-weight:700">' + sl.length + '</div><div style="color:var(--text-muted);font-size:10px">LEADS</div></div>';
+    h += '<div><div style="font-weight:700;color:var(--warning)">' + sent + '</div><div style="color:var(--text-muted);font-size:10px">ENVOYÉS</div></div>';
+    h += '<div><div style="font-weight:700;color:var(--success)">' + sold + '</div><div style="color:var(--text-muted);font-size:10px">VENDUS</div></div></div></div>';
   });
+  document.getElementById('page-content').innerHTML = h;
+}
 
-  if (filtered.length === 0) {
-    document.getElementById('leads-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Aucun lead trouvé</div>';
-    return;
+function renderLeadCard(l, mode) {
+  var sc = l.score <= 4 ? 'score-low' : 'score-med';
+  var h = '<div class="lead-card">';
+  h += '<div class="lead-top"><div><div class="lead-name">' + l.name + '</div><div class="lead-meta">' + (l.industry||'') + ' · ' + (l.batch_date||'') + '</div></div>';
+  h += '<div class="lead-score ' + sc + '">' + (l.score||'?') + '/10</div></div>';
+
+  h += '<div class="lead-contact">';
+  if (l.phone) h += '<span>📞 ' + l.phone + '</span>';
+  if (l.email) h += '<span>✉️ ' + l.email + '</span>';
+  if (l.site_current) h += '<a href="https://' + l.site_current + '" target="_blank">🌐 ' + l.site_current + '</a>';
+  h += '</div>';
+
+  h += '<div class="lead-btns">';
+  if (l.site_demo) h += '<a href="' + l.site_demo + '" target="_blank" class="lead-btn btn-demo">Voir démo</a>';
+  if (mode === 'available') h += '<button class="lead-btn btn-claim" onclick="claimLead(\'' + l.id + '\')">Prendre ce lead</button>';
+  h += '</div>';
+
+  if (l.email_body) {
+    h += '<button class="expand-btn" onclick="toggle(\'e-'+l.id+'\')">📧 Email</button>';
+    h += '<div id="e-'+l.id+'" class="expand-content hidden"><div class="expand-label">Email à envoyer</div>';
+    if (l.email) h += '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">À: ' + l.email + '</div>';
+    if (l.email_subject) h += '<div class="expand-subject">Objet: ' + l.email_subject + '</div>';
+    h += '<div class="expand-body">' + l.email_body.replace(/\n/g,'<br>') + '</div>';
+    h += '<button class="copy-btn" onclick="doCopy(\'' + esc(l.email_body) + '\',this)">Copier</button></div>';
+  }
+  if (l.sms_body) {
+    h += '<button class="expand-btn" onclick="toggle(\'s-'+l.id+'\')">📱 SMS</button>';
+    h += '<div id="s-'+l.id+'" class="expand-content hidden"><div class="expand-label">SMS</div>';
+    h += '<div style="font-size:12px;color:var(--text-light)">' + l.sms_body + '</div>';
+    h += '<button class="copy-btn" onclick="doCopy(\'' + esc(l.sms_body) + '\',this)">Copier</button></div>';
   }
 
-  var html = '';
-  filtered.forEach(function(l) {
-    var scoreClass = l.score <= 5 ? 'score-bad' : 'score-ok';
-    var isAssignedToMe = l.assigned_to === currentUser.id;
-    var isAdmin = currentSeller && currentSeller.role === 'admin';
-    var canClaim = l.status === 'available' && !l.assigned_to;
-    var sellerName = '';
-    if (l.assigned_to && isAdmin) {
-      var seller = sellers.find(function(s) { return s.id === l.assigned_to; });
-      sellerName = seller ? seller.name : '';
-    }
-
-    html += '<div class="lead-card status-' + l.status + '">';
-    html += '<div class="lead-header"><div>';
-    html += '<div class="lead-name">' + l.name + '</div>';
-    html += '<div class="lead-meta">' + (l.industry || '') + ' · ' + (l.batch_date || '') + '</div>';
-    html += '</div>';
-    html += '<div class="lead-score ' + scoreClass + '">' + (l.score || '?') + '/10</div></div>';
-
-    html += '<div class="lead-info">';
-    if (l.phone) html += '<span>📞 ' + l.phone + '</span>';
-    if (l.email) html += '<span>✉️ ' + l.email + '</span>';
-    if (l.site_current) html += '<span>🌐 <a href="https://' + l.site_current + '" target="_blank">' + l.site_current + '</a></span>';
-    if (sellerName) html += '<span class="assigned-badge">👤 ' + sellerName + '</span>';
-    html += '</div>';
-
-    html += '<div class="lead-links">';
-    if (l.site_demo) html += '<a href="' + l.site_demo + '" target="_blank" class="link-btn link-demo">🔗 Démo</a>';
-    if (l.site_current) html += '<a href="https://' + l.site_current + '" target="_blank" class="link-btn link-site">🌐 Actuel</a>';
-    html += '</div>';
-
-    // Email
-    if (l.email_body) {
-      html += '<div class="collapsible"><button class="collapsible-toggle" onclick="toggle(\'email-' + l.id + '\')">📧 Voir l\'email</button>';
-      html += '<div id="email-' + l.id + '" class="collapsible-content hidden">';
-      html += '<div class="email-label">Email</div>';
-      if (l.email) html += '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">À : ' + l.email + '</div>';
-      if (l.email_subject) html += '<div class="email-subject">Objet : ' + l.email_subject + '</div>';
-      html += '<div class="email-body">' + l.email_body.replace(/\n/g, '<br>') + '</div>';
-      html += '<button class="btn btn-small btn-secondary" style="margin-top:8px" onclick="copyText(\'' + escapeJs(l.email_body) + '\', this)">Copier</button>';
-      html += '</div></div>';
-    }
-
-    // SMS
-    if (l.sms_body) {
-      html += '<div class="collapsible"><button class="collapsible-toggle" onclick="toggle(\'sms-' + l.id + '\')">📱 Voir le SMS</button>';
-      html += '<div id="sms-' + l.id + '" class="collapsible-content hidden">';
-      html += '<div class="email-label">SMS</div>';
-      html += '<div style="font-size:12px;color:var(--text-light);line-height:1.5">' + l.sms_body + '</div>';
-      html += '<button class="btn btn-small btn-secondary" style="margin-top:8px" onclick="copyText(\'' + escapeJs(l.sms_body) + '\', this)">Copier</button>';
-      html += '</div></div>';
-    }
-
-    // Actions
-    html += '<div class="actions">';
-    if (canClaim) {
-      html += '<button class="status-btn" onclick="claimLead(\'' + l.id + '\')">✋ Prendre ce lead</button>';
-    }
-    if (isAssignedToMe || isAdmin) {
-      html += '<button class="status-btn ' + (l.status === 'emailed' ? 'active-emailed' : '') + '" onclick="setStatus(\'' + l.id + '\',\'emailed\')">📧 Envoyé</button>';
-      html += '<button class="status-btn ' + (l.status === 'replied' ? 'active-replied' : '') + '" onclick="setStatus(\'' + l.id + '\',\'replied\')">💬 Répondu</button>';
-      html += '<button class="status-btn ' + (l.status === 'sold' ? 'active-sold' : '') + '" onclick="setStatus(\'' + l.id + '\',\'sold\')">💰 Vendu</button>';
-      html += '<button class="status-btn ' + (l.status === 'rejected' ? 'active-rejected' : '') + '" onclick="setStatus(\'' + l.id + '\',\'rejected\')">❌ Rejeté</button>';
-    }
-    html += '</div></div>';
-  });
-
-  document.getElementById('leads-container').innerHTML = html;
+  if (mode === 'mine') {
+    h += '<div class="status-actions">';
+    h += '<button class="status-btn' + (l.status==='emailed'?' s-emailed':'') + '" onclick="setStatus(\''+l.id+'\',\'emailed\')">📧 Envoyé</button>';
+    h += '<button class="status-btn' + (l.status==='replied'?' s-replied':'') + '" onclick="setStatus(\''+l.id+'\',\'replied\')">💬 Répondu</button>';
+    h += '<button class="status-btn' + (l.status==='sold'?' s-sold':'') + '" onclick="setStatus(\''+l.id+'\',\'sold\')">💰 Vendu</button>';
+    h += '<button class="status-btn' + (l.status==='rejected'?' s-rejected':'') + '" onclick="setStatus(\''+l.id+'\',\'rejected\')">❌ Rejeté</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
 }
 
-function renderSellers() {
-  var html = '';
-  sellers.forEach(function(s) {
-    var myLeads = leads.filter(function(l) { return l.assigned_to === s.id; });
-    var emailed = myLeads.filter(function(l) { return l.status === 'emailed' || l.status === 'replied' || l.status === 'sold'; }).length;
-    var sold = myLeads.filter(function(l) { return l.status === 'sold'; }).length;
-    html += '<div class="seller-card"><div>';
-    html += '<div class="seller-name">' + s.name + (s.role === 'admin' ? ' 👑' : '') + '</div>';
-    html += '<div class="seller-email">' + s.email + '</div></div>';
-    html += '<div class="seller-stats">';
-    html += '<div class="seller-stat"><div class="seller-stat-num">' + myLeads.length + '</div><div style="font-size:10px;color:var(--text-muted)">Leads</div></div>';
-    html += '<div class="seller-stat"><div class="seller-stat-num" style="color:var(--warning)">' + emailed + '</div><div style="font-size:10px;color:var(--text-muted)">Envoyés</div></div>';
-    html += '<div class="seller-stat"><div class="seller-stat-num" style="color:var(--success)">' + sold + '</div><div style="font-size:10px;color:var(--text-muted)">Vendus</div></div>';
-    html += '</div></div>';
-  });
-  document.getElementById('sellers-container').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted)">Aucun vendeur</div>';
-}
-
-// Actions
 async function claimLead(id) {
-  await supabase.from('lead_businesses').update({ assigned_to: currentUser.id, status: 'assigned', assigned_at: new Date().toISOString() }).eq('id', id);
-  await loadData();
+  await SB.from('lead_businesses').update({assigned_to:user.id,status:'assigned',assigned_at:new Date().toISOString()}).eq('id',id);
+  await loadData(); render();
 }
-
-async function setStatus(id, status) {
-  var update = { status: status };
-  if (status === 'emailed') update.emailed_at = new Date().toISOString();
-  if (status === 'replied') update.replied_at = new Date().toISOString();
-  if (status === 'sold') update.sold_at = new Date().toISOString();
-  await supabase.from('lead_businesses').update(update).eq('id', id);
-  await loadData();
+async function setStatus(id,s) {
+  var u = {status:s};
+  if(s==='emailed') u.emailed_at=new Date().toISOString();
+  if(s==='replied') u.replied_at=new Date().toISOString();
+  if(s==='sold') u.sold_at=new Date().toISOString();
+  await SB.from('lead_businesses').update(u).eq('id',id);
+  await loadData(); render();
 }
-
-function toggle(id) { document.getElementById(id).classList.toggle('hidden'); }
-
-function copyText(text, btn) {
-  try { navigator.clipboard.writeText(text.replace(/\\n/g, '\n')); } catch(e) {}
-  var orig = btn.textContent;
-  btn.textContent = 'Copié!';
-  setTimeout(function() { btn.textContent = orig; }, 1500);
-}
-
-function escapeJs(str) {
-  return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
-}
+function toggle(id){document.getElementById(id).classList.toggle('hidden')}
+function doCopy(t,btn){try{navigator.clipboard.writeText(t.replace(/\\n/g,'\n'))}catch(e){}var o=btn.textContent;btn.textContent='Copié!';setTimeout(function(){btn.textContent=o},1500)}
+function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n')}
 </script>
 </body>
 </html>
