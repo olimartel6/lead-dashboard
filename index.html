@@ -5,270 +5,465 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lead Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg: #0B0D13; --card: #13151D; --elevated: #1A1D28; --border: #2A2D3A;
   --text: #E8E9ED; --text-light: #9CA3AF; --text-muted: #6B7280;
   --primary: #8B5CF6; --primary-light: #A78BFA; --primary-glow: rgba(139,92,246,0.15);
   --success: #10B981; --success-light: rgba(16,185,129,0.12);
-  --warning: #F59E0B; --danger: #EF4444;
+  --warning: #F59E0B; --warning-light: rgba(245,158,11,0.12);
+  --danger: #EF4444; --danger-light: rgba(239,68,68,0.12);
   --radius: 14px; --font: 'Inter', system-ui, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.hidden { display: none !important; }
 
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-.header h1 { font-size: 24px; font-weight: 800; }
+/* Login */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.login-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 28px; width: 100%; max-width: 400px; text-align: center; }
+.login-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.login-card h1 span { color: var(--primary-light); }
+.login-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 28px; }
+.input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 14px; margin-bottom: 12px; }
+.input:focus { outline: none; border-color: var(--primary); }
+.input::placeholder { color: var(--text-muted); }
+.btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #7C3AED; }
+.btn-secondary { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); margin-top: 8px; }
+.btn-small { width: auto; padding: 8px 16px; font-size: 12px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.error-msg { background: var(--danger-light); color: var(--danger); padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+.success-msg { background: var(--success-light); color: var(--success); padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.header h1 { font-size: 22px; font-weight: 800; }
 .header h1 span { color: var(--primary-light); }
-.stats { display: flex; gap: 8px; }
-.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; text-align: center; }
-.stat-num { font-size: 20px; font-weight: 800; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.user-badge { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--text-light); }
+.admin-badge { background: var(--primary-glow); color: var(--primary-light); border: 1px solid rgba(139,92,246,0.3); }
+
+/* Stats */
+.stats { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; text-align: center; flex: 1; min-width: 80px; }
+.stat-num { font-size: 22px; font-weight: 800; }
 .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-.filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.filter-btn { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; color: var(--text-light); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-.filter-btn:hover { border-color: var(--primary); }
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--elevated); padding: 4px; border-radius: 10px; }
+.tab { flex: 1; padding: 10px; border: none; border-radius: 8px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; }
+.tab.active { background: var(--card); color: var(--text); }
 
-.search { width: 100%; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 14px; margin-bottom: 20px; }
+/* Filters */
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; color: var(--text-light); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.search { width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 13px; margin-bottom: 16px; }
 .search:focus { outline: none; border-color: var(--primary); }
 .search::placeholder { color: var(--text-muted); }
 
-.lead-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; transition: all 0.2s; }
-.lead-card:hover { border-color: var(--primary); }
-.lead-card.sent { opacity: 0.6; }
-.lead-card.sent .lead-name { text-decoration: line-through; }
+/* Lead Cards */
+.lead-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 10px; transition: all 0.2s; }
+.lead-card:hover { border-color: rgba(139,92,246,0.3); }
+.lead-card.status-emailed { border-left: 3px solid var(--warning); }
+.lead-card.status-replied { border-left: 3px solid var(--primary); }
+.lead-card.status-sold { border-left: 3px solid var(--success); opacity: 0.7; }
+.lead-card.status-rejected { border-left: 3px solid var(--danger); opacity: 0.5; }
 
-.lead-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.lead-name { font-size: 17px; font-weight: 700; }
-.lead-industry { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.lead-score { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
-.score-bad { background: rgba(239,68,68,0.15); color: var(--danger); }
-.score-ok { background: rgba(245,158,11,0.15); color: var(--warning); }
+.lead-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.lead-name { font-size: 16px; font-weight: 700; }
+.lead-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.lead-score { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.score-bad { background: var(--danger-light); color: var(--danger); }
+.score-ok { background: var(--warning-light); color: var(--warning); }
 
-.lead-info { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; font-size: 13px; color: var(--text-light); }
+.lead-info { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; font-size: 12px; color: var(--text-light); }
 .lead-info a { color: var(--primary-light); text-decoration: none; }
-.lead-info a:hover { text-decoration: underline; }
 
-.lead-links { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.link-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+.lead-links { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.link-btn { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; }
 .link-demo { background: var(--primary-glow); color: var(--primary-light); }
 .link-site { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); }
 
-.email-section { background: var(--elevated); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-.email-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.email-subject { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--primary-light); }
-.email-body { font-size: 13px; color: var(--text-light); line-height: 1.6; white-space: pre-wrap; }
-.email-to { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.collapsible { margin-bottom: 8px; }
+.collapsible-toggle { background: none; border: none; color: var(--primary-light); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.collapsible-content { background: var(--elevated); border-radius: 10px; padding: 14px; margin-top: 6px; }
+.email-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.email-subject { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--primary-light); }
+.email-body { font-size: 12px; color: var(--text-light); line-height: 1.6; white-space: pre-wrap; }
 
-.sms-section { background: var(--elevated); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
-.sms-body { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.status-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--elevated); color: var(--text-light); font-family: var(--font); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.status-btn:hover { border-color: var(--primary); }
+.status-btn.active-emailed { background: var(--warning-light); color: var(--warning); border-color: var(--warning); }
+.status-btn.active-replied { background: var(--primary-glow); color: var(--primary-light); border-color: var(--primary); }
+.status-btn.active-sold { background: var(--success-light); color: var(--success); border-color: var(--success); }
+.status-btn.active-rejected { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
 
-.actions { display: flex; gap: 8px; align-items: center; }
-.btn { padding: 8px 16px; border: none; border-radius: 8px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-copy { background: var(--elevated); color: var(--text-light); border: 1px solid var(--border); }
-.btn-copy:hover { border-color: var(--primary); color: var(--primary-light); }
-.btn-sent { background: var(--success-light); color: var(--success); }
-.btn-sent.done { background: var(--success); color: white; }
+.assigned-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary-light); }
 
-.toggle-email { background: none; border: none; color: var(--primary-light); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
-
-.date-badge { display: inline-block; background: var(--elevated); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 2px; }
-
-.empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+/* Admin: Sellers Table */
+.seller-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.seller-name { font-weight: 600; font-size: 14px; }
+.seller-email { font-size: 12px; color: var(--text-muted); }
+.seller-stats { display: flex; gap: 12px; font-size: 12px; }
+.seller-stat { text-align: center; }
+.seller-stat-num { font-weight: 700; }
 
 @media (max-width: 600px) {
-  .header { flex-direction: column; gap: 12px; align-items: flex-start; }
-  .lead-info { flex-direction: column; gap: 4px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .stats { flex-wrap: wrap; }
+  .stat { min-width: 70px; }
 }
 </style>
 </head>
 <body>
-<div class="container">
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="login-page">
+  <div class="login-card">
+    <h1>Lead <span>Dashboard</span></h1>
+    <p>Connectez-vous pour accéder aux leads</p>
+    <div id="login-error" class="error-msg hidden"></div>
+    <div id="login-mode-signin">
+      <input type="email" class="input" id="login-email" placeholder="Email">
+      <input type="password" class="input" id="login-password" placeholder="Mot de passe">
+      <button class="btn btn-primary" onclick="signIn()">Connexion</button>
+      <button class="btn btn-secondary" onclick="showSignup()">Créer un compte vendeur</button>
+    </div>
+    <div id="login-mode-signup" class="hidden">
+      <input type="text" class="input" id="signup-name" placeholder="Votre nom">
+      <input type="email" class="input" id="signup-email" placeholder="Email">
+      <input type="password" class="input" id="signup-password" placeholder="Mot de passe (min 6 car.)">
+      <button class="btn btn-primary" onclick="signUp()">Créer le compte</button>
+      <button class="btn btn-secondary" onclick="showSignin()">Retour à la connexion</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard-page" class="container hidden">
   <div class="header">
     <h1>Lead <span>Dashboard</span></h1>
-    <div class="stats">
-      <div class="stat"><div class="stat-num" id="total-count">0</div><div class="stat-label">Total</div></div>
-      <div class="stat"><div class="stat-num" id="sent-count" style="color:var(--success)">0</div><div class="stat-label">Envoyés</div></div>
-      <div class="stat"><div class="stat-num" id="pending-count" style="color:var(--warning)">0</div><div class="stat-label">En attente</div></div>
+    <div class="header-right">
+      <span class="user-badge" id="user-badge"></span>
+      <button class="btn btn-small btn-secondary" onclick="signOut()">Déconnexion</button>
     </div>
   </div>
 
-  <input type="text" class="search" placeholder="Chercher un lead..." id="search" oninput="renderLeads()">
+  <div class="stats" id="stats-bar"></div>
 
-  <div class="filters">
-    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Tous</button>
-    <button class="filter-btn" data-filter="pending" onclick="setFilter('pending')">En attente</button>
-    <button class="filter-btn" data-filter="sent" onclick="setFilter('sent')">Envoyés</button>
+  <!-- Admin tabs -->
+  <div class="tabs" id="admin-tabs" class="hidden">
+    <button class="tab active" onclick="setTab('leads')">Leads</button>
+    <button class="tab" onclick="setTab('sellers')">Vendeurs</button>
   </div>
 
-  <div id="leads-container"></div>
+  <!-- Leads view -->
+  <div id="tab-leads">
+    <input type="text" class="search" placeholder="Chercher un lead..." oninput="renderLeads()">
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all')">Tous</button>
+      <button class="filter-btn" onclick="setFilter('available')">Disponibles</button>
+      <button class="filter-btn" onclick="setFilter('mine')">Mes leads</button>
+      <button class="filter-btn" onclick="setFilter('emailed')">Envoyés</button>
+      <button class="filter-btn" onclick="setFilter('replied')">Répondus</button>
+      <button class="filter-btn" onclick="setFilter('sold')">Vendus</button>
+    </div>
+    <div id="leads-container"></div>
+  </div>
+
+  <!-- Sellers view (admin only) -->
+  <div id="tab-sellers" class="hidden">
+    <h2 style="font-size:18px;margin-bottom:16px">Vendeurs</h2>
+    <div id="sellers-container"></div>
+  </div>
 </div>
 
 <script>
-// Lead data — will be populated by the lead gen system
-var LEADS = [
-  {
-    name: "Newtec Électricité", industry: "Électricien", score: 4.75, date: "2026-03-22",
-    phone: "(418) 847-3433", email: "", site: "newtecelectricite.com",
-    demo: "https://olimartel6.github.io/loggic-newtec/",
-    emailSubject: "J'ai remarqué quelque chose sur votre site web, Newtec",
-    emailBody: "Bonjour,\n\nJe m'appelle [TON NOM] et je travaille avec des entreprises locales à Québec pour les aider à obtenir plus d'appels via leur site web.\n\nJ'ai regardé votre site newtecelectricite.com et j'ai remarqué quelques points qui pourraient vous faire perdre des clients :\n\n- Aucun témoignage visible\n- Pas de certifications affichées\n- Le design donne une impression datée\n\nJ'ai créé une version modernisée de votre page — gratuitement, sans engagement :\n\n👉 https://olimartel6.github.io/loggic-newtec/\n\n10 minutes au téléphone si ça vous intéresse. Sinon, aucun problème!\n\n[TON NOM]\nLoggicsupplies@gmail.com",
-    sms: "Bonjour, c'est [NOM]. Je vous ai envoyé un email avec une maquette gratuite de votre nouveau site web. Avez-vous eu la chance d'y jeter un œil? 30 secondes!",
-  },
-  {
-    name: "SOS Plomberie", industry: "Plombier", score: 6.25, date: "2026-03-22",
-    phone: "418 928-3536", email: "", site: "sosplomberie.quebec",
-    demo: "https://olimartel6.github.io/loggic-plomberie/",
-    emailSubject: "Votre site SOS Plomberie a du potentiel — voici une idée",
-    emailBody: "Bonjour,\n\nJe suis [TON NOM], je travaille avec des entreprises de services à Québec.\n\nJ'ai regardé sosplomberie.quebec — votre réputation est solide. Mais votre site ne reflète pas la qualité de votre service.\n\nJ'ai créé une maquette premium — 100% gratuit, 0 engagement :\n\n👉 https://olimartel6.github.io/loggic-plomberie/\n\n10 minutes pour en discuter si ça vous plaît. Sinon, bonne continuation!\n\n[TON NOM]\nLoggicsupplies@gmail.com",
-    sms: "Bonjour, c'est [NOM]. Je vous ai envoyé un aperçu gratuit d'un nouveau design pour votre site SOS Plomberie. Avez-vous pu le voir? 30 secondes!",
-  },
-  {
-    name: "Construction Rénovation S. Auclair", industry: "Entrepreneur général", score: 5.75, date: "2026-03-22",
-    phone: "(418) 265-1350", email: "constructionrenovationsauclair@hotmail.com", site: "constructionrenovationsauclair.com",
-    demo: "https://olimartel6.github.io/loggic-auclair/",
-    emailSubject: "19 ans d'expérience méritent un meilleur site web",
-    emailBody: "Bonjour M. Auclair,\n\nJe suis [TON NOM]. Je travaille avec des entrepreneurs en rénovation à Québec.\n\nJ'ai regardé votre site et vos 50 avis Google (4.5/5 — bravo!). Votre réputation est solide, mais votre site ne lui rend pas justice.\n\nJ'ai créé une maquette premium — 100% gratuit :\n\n👉 https://olimartel6.github.io/loggic-auclair/\n\n[TON NOM]\nLoggicsupplies@gmail.com",
-    sms: "Bonjour, c'est [NOM]. Je vous ai envoyé une maquette gratuite pour votre site Construction S. Auclair. 30 secondes pour voir!",
-  },
-  {
-    name: "Toiture Wendake", industry: "Toiturier", score: 5, date: "2026-03-23",
-    phone: "(418) 456-3263", email: "toiturewendake@hotmail.com", site: "",
-    demo: "https://olimartel6.github.io/loggic-toiture-wendake/",
-    emailSubject: "Votre entreprise de toiture mérite un site web professionnel",
-    emailBody: "Bonjour,\n\nJe suis [TON NOM], développeur web indépendant à Québec.\n\nJ'ai remarqué que Toiture Wendake n'a pas de site web moderne. Vos concurrents en ont un et captent des clients que vous pourriez avoir.\n\nJ'ai créé un prototype gratuit pour vous :\n\n👉 https://olimartel6.github.io/loggic-toiture-wendake/\n\nAucune obligation. Si ça vous parle, on en jase 5 minutes.\n\n[TON NOM]\nLoggicsupplies@gmail.com",
-    sms: "Bonjour, c'est [NOM]. J'ai créé un prototype de site web gratuit pour Toiture Wendake. Jetez un œil : https://olimartel6.github.io/loggic-toiture-wendake/",
-  },
-  {
-    name: "Déménagement Alex Lajeunesse", industry: "Déménageur", score: 5, date: "2026-03-23",
-    phone: "418-622-1819", email: "administration@rapidetransport.ca", site: "",
-    demo: "https://olimartel6.github.io/loggic-demenagement-alex-lajeunesse/",
-    emailSubject: "Un site web moderne pour Déménagement Alex Lajeunesse",
-    emailBody: "Bonjour,\n\nJe suis [TON NOM], développeur web indépendant.\n\nJ'ai créé un prototype de site web gratuit pour votre entreprise de déménagement :\n\n👉 https://olimartel6.github.io/loggic-demenagement-alex-lajeunesse/\n\nAucune obligation. 5 minutes au téléphone si ça vous intéresse.\n\n[TON NOM]\nLoggicsupplies@gmail.com",
-    sms: "Bonjour, c'est [NOM]. J'ai créé un site web gratuit pour Déménagement Alex Lajeunesse. Regardez : https://olimartel6.github.io/loggic-demenagement-alex-lajeunesse/",
-  },
-  {
-    name: "El Macho Barbershop", industry: "Barbier", score: 5, date: "2026-03-23",
-    phone: "581-888-0891", email: "", site: "",
-    demo: "https://olimartel6.github.io/loggic-el-macho-barbershop/",
-    emailSubject: "",
-    emailBody: "",
-    sms: "Bonjour, c'est [NOM]. J'ai créé un prototype de site web gratuit pour El Macho Barbershop. Jetez un œil : https://olimartel6.github.io/loggic-el-macho-barbershop/ Intéressé? 5 min au tél!",
-  },
-  {
-    name: "Barbershop Angel", industry: "Barbier", score: 5, date: "2026-03-23",
-    phone: "418-580-8029", email: "", site: "",
-    demo: "https://olimartel6.github.io/loggic-barbershop-angel/",
-    emailSubject: "",
-    emailBody: "",
-    sms: "Bonjour, c'est [NOM]. J'ai créé un prototype de site web gratuit pour Barbershop Angel : https://olimartel6.github.io/loggic-barbershop-angel/ Intéressé?",
-  },
-];
+var supabase = window.supabase.createClient(
+  'https://ybmzhztsyyrpxgsempzz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibXpoenRzeXlycHhnc2VtcHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTU0MTgsImV4cCI6MjA4OTI3MTQxOH0.MBjRFHrF1viOaV1pJqNnQjxEk7mpzJo-DksHtbCk-ug'
+);
 
+var currentUser = null;
+var currentSeller = null;
+var leads = [];
+var sellers = [];
 var currentFilter = 'all';
-var sentLeads = JSON.parse(localStorage.getItem('sentLeads') || '{}');
+var currentTab = 'leads';
 
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.filter === f); });
-  renderLeads();
+// Auth
+async function signIn() {
+  var email = document.getElementById('login-email').value;
+  var pw = document.getElementById('login-password').value;
+  document.getElementById('login-error').classList.add('hidden');
+  var r = await supabase.auth.signInWithPassword({ email: email, password: pw });
+  if (r.error) {
+    document.getElementById('login-error').textContent = r.error.message;
+    document.getElementById('login-error').classList.remove('hidden');
+  }
 }
 
-function toggleSent(name) {
-  if (sentLeads[name]) delete sentLeads[name];
-  else sentLeads[name] = new Date().toISOString();
-  localStorage.setItem('sentLeads', JSON.stringify(sentLeads));
-  renderLeads();
-}
+async function signUp() {
+  var name = document.getElementById('signup-name').value;
+  var email = document.getElementById('signup-email').value;
+  var pw = document.getElementById('signup-password').value;
+  document.getElementById('login-error').classList.add('hidden');
 
-function copyText(text, btn) {
-  navigator.clipboard.writeText(text).catch(function() {});
-  var orig = btn.textContent;
-  btn.textContent = 'Copié!';
-  btn.style.color = 'var(--success)';
-  setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 1500);
-}
-
-function renderLeads() {
-  var query = document.getElementById('search').value.toLowerCase();
-  var container = document.getElementById('leads-container');
-  var html = '';
-  var total = 0, sent = 0, pending = 0;
-
-  var filtered = LEADS.filter(function(l) {
-    var matchSearch = !query || l.name.toLowerCase().includes(query) || l.industry.toLowerCase().includes(query);
-    var isSent = !!sentLeads[l.name];
-    var matchFilter = currentFilter === 'all' || (currentFilter === 'sent' && isSent) || (currentFilter === 'pending' && !isSent);
-    return matchSearch && matchFilter;
-  });
-
-  LEADS.forEach(function(l) { total++; if (sentLeads[l.name]) sent++; else pending++; });
-  document.getElementById('total-count').textContent = total;
-  document.getElementById('sent-count').textContent = sent;
-  document.getElementById('pending-count').textContent = pending;
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">Aucun lead trouvé</div>';
+  var r = await supabase.auth.signUp({ email: email, password: pw });
+  if (r.error) {
+    // Try signin if already exists
+    var r2 = await supabase.auth.signInWithPassword({ email: email, password: pw });
+    if (r2.error) {
+      document.getElementById('login-error').textContent = r.error.message;
+      document.getElementById('login-error').classList.remove('hidden');
+    }
     return;
   }
 
-  filtered.forEach(function(l, i) {
-    var isSent = !!sentLeads[l.name];
-    var scoreClass = l.score <= 5 ? 'score-bad' : 'score-ok';
-    var id = 'lead-' + i;
+  if (r.data.user) {
+    // Create seller profile
+    await supabase.from('lead_sellers').upsert({ id: r.data.user.id, email: email, name: name, role: 'seller' });
+    // Try login right away
+    if (!r.data.session) {
+      await supabase.auth.signInWithPassword({ email: email, password: pw });
+    }
+  }
+}
 
-    html += '<div class="lead-card' + (isSent ? ' sent' : '') + '">';
-    html += '<div class="lead-header">';
-    html += '<div><div class="lead-name">' + l.name + '</div><div class="lead-industry">' + l.industry + ' · <span class="date-badge">' + l.date + '</span></div></div>';
-    html += '<div class="lead-score ' + scoreClass + '">' + l.score + '/10</div>';
+function showSignup() {
+  document.getElementById('login-mode-signin').classList.add('hidden');
+  document.getElementById('login-mode-signup').classList.remove('hidden');
+}
+function showSignin() {
+  document.getElementById('login-mode-signup').classList.add('hidden');
+  document.getElementById('login-mode-signin').classList.remove('hidden');
+}
+
+async function signOut() {
+  await supabase.auth.signOut();
+  location.reload();
+}
+
+// Init
+supabase.auth.onAuthStateChange(async function(event, session) {
+  if (session && session.user) {
+    currentUser = session.user;
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('dashboard-page').classList.remove('hidden');
+    await loadSeller();
+    await loadData();
+  } else {
+    document.getElementById('login-page').classList.remove('hidden');
+    document.getElementById('dashboard-page').classList.add('hidden');
+  }
+});
+
+async function loadSeller() {
+  var r = await supabase.from('lead_sellers').select('*').eq('id', currentUser.id).single();
+  if (r.data) {
+    currentSeller = r.data;
+    var badge = currentSeller.name + (currentSeller.role === 'admin' ? ' (Admin)' : '');
+    document.getElementById('user-badge').textContent = badge;
+    if (currentSeller.role === 'admin') {
+      document.getElementById('user-badge').classList.add('admin-badge');
+      document.getElementById('admin-tabs').classList.remove('hidden');
+    }
+  } else {
+    // Create seller profile if missing
+    await supabase.from('lead_sellers').upsert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'seller' });
+    await loadSeller();
+  }
+}
+
+async function loadData() {
+  var r = await supabase.from('lead_businesses').select('*').order('created_at', { ascending: false });
+  leads = r.data || [];
+  if (currentSeller && currentSeller.role === 'admin') {
+    var s = await supabase.from('lead_sellers').select('*');
+    sellers = s.data || [];
+  }
+  render();
+}
+
+// Tabs
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)); });
+  document.getElementById('tab-leads').classList.toggle('hidden', tab !== 'leads');
+  document.getElementById('tab-sellers').classList.toggle('hidden', tab !== 'sellers');
+  render();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b,i) {
+    var filters = ['all','available','mine','emailed','replied','sold'];
+    b.classList.toggle('active', filters[i] === f);
+  });
+  renderLeads();
+}
+
+function render() {
+  renderStats();
+  renderLeads();
+  if (currentTab === 'sellers') renderSellers();
+}
+
+function renderStats() {
+  var total = leads.length;
+  var available = leads.filter(function(l) { return l.status === 'available'; }).length;
+  var emailed = leads.filter(function(l) { return l.status === 'emailed'; }).length;
+  var sold = leads.filter(function(l) { return l.status === 'sold'; }).length;
+  var mine = leads.filter(function(l) { return l.assigned_to === currentUser.id; }).length;
+
+  document.getElementById('stats-bar').innerHTML =
+    '<div class="stat"><div class="stat-num">' + total + '</div><div class="stat-label">Total</div></div>' +
+    '<div class="stat"><div class="stat-num" style="color:var(--primary-light)">' + available + '</div><div class="stat-label">Disponibles</div></div>' +
+    '<div class="stat"><div class="stat-num" style="color:var(--warning)">' + mine + '</div><div class="stat-label">Mes leads</div></div>' +
+    '<div class="stat"><div class="stat-num" style="color:var(--success)">' + sold + '</div><div class="stat-label">Vendus</div></div>';
+}
+
+function renderLeads() {
+  var query = (document.querySelector('.search') || {}).value || '';
+  query = query.toLowerCase();
+
+  var filtered = leads.filter(function(l) {
+    var matchSearch = !query || l.name.toLowerCase().includes(query) || (l.industry || '').toLowerCase().includes(query);
+    if (currentFilter === 'all') return matchSearch;
+    if (currentFilter === 'available') return matchSearch && l.status === 'available';
+    if (currentFilter === 'mine') return matchSearch && l.assigned_to === currentUser.id;
+    if (currentFilter === 'emailed') return matchSearch && l.status === 'emailed';
+    if (currentFilter === 'replied') return matchSearch && l.status === 'replied';
+    if (currentFilter === 'sold') return matchSearch && l.status === 'sold';
+    return matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('leads-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Aucun lead trouvé</div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(l) {
+    var scoreClass = l.score <= 5 ? 'score-bad' : 'score-ok';
+    var isAssignedToMe = l.assigned_to === currentUser.id;
+    var isAdmin = currentSeller && currentSeller.role === 'admin';
+    var canClaim = l.status === 'available' && !l.assigned_to;
+    var sellerName = '';
+    if (l.assigned_to && isAdmin) {
+      var seller = sellers.find(function(s) { return s.id === l.assigned_to; });
+      sellerName = seller ? seller.name : '';
+    }
+
+    html += '<div class="lead-card status-' + l.status + '">';
+    html += '<div class="lead-header"><div>';
+    html += '<div class="lead-name">' + l.name + '</div>';
+    html += '<div class="lead-meta">' + (l.industry || '') + ' · ' + (l.batch_date || '') + '</div>';
     html += '</div>';
+    html += '<div class="lead-score ' + scoreClass + '">' + (l.score || '?') + '/10</div></div>';
 
     html += '<div class="lead-info">';
     if (l.phone) html += '<span>📞 ' + l.phone + '</span>';
     if (l.email) html += '<span>✉️ ' + l.email + '</span>';
-    if (l.site) html += '<span>🌐 <a href="https://' + l.site + '" target="_blank">' + l.site + '</a></span>';
+    if (l.site_current) html += '<span>🌐 <a href="https://' + l.site_current + '" target="_blank">' + l.site_current + '</a></span>';
+    if (sellerName) html += '<span class="assigned-badge">👤 ' + sellerName + '</span>';
     html += '</div>';
 
     html += '<div class="lead-links">';
-    html += '<a href="' + l.demo + '" target="_blank" class="link-btn link-demo">🔗 Voir la démo</a>';
-    if (l.site) html += '<a href="https://' + l.site + '" target="_blank" class="link-btn link-site">🌐 Site actuel</a>';
+    if (l.site_demo) html += '<a href="' + l.site_demo + '" target="_blank" class="link-btn link-demo">🔗 Démo</a>';
+    if (l.site_current) html += '<a href="https://' + l.site_current + '" target="_blank" class="link-btn link-site">🌐 Actuel</a>';
     html += '</div>';
 
-    if (l.emailBody) {
-      html += '<button class="toggle-email" onclick="var el=document.getElementById(\'' + id + '-email\');el.style.display=el.style.display===\'none\'?\'block\':\'none\'">📧 Voir l\'email</button>';
-      html += '<div id="' + id + '-email" style="display:none;margin-top:8px">';
-      html += '<div class="email-section">';
-      html += '<div class="email-label">Email à envoyer</div>';
-      if (l.email) html += '<div class="email-to">À : ' + l.email + '</div>';
-      html += '<div class="email-subject">Objet : ' + l.emailSubject + '</div>';
-      html += '<div class="email-body">' + l.emailBody.replace(/\n/g, '<br>') + '</div>';
-      html += '<button class="btn btn-copy" style="margin-top:10px" onclick="copyText(`' + l.emailBody.replace(/`/g, "'") + '`, this)">Copier l\'email</button>';
+    // Email
+    if (l.email_body) {
+      html += '<div class="collapsible"><button class="collapsible-toggle" onclick="toggle(\'email-' + l.id + '\')">📧 Voir l\'email</button>';
+      html += '<div id="email-' + l.id + '" class="collapsible-content hidden">';
+      html += '<div class="email-label">Email</div>';
+      if (l.email) html += '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">À : ' + l.email + '</div>';
+      if (l.email_subject) html += '<div class="email-subject">Objet : ' + l.email_subject + '</div>';
+      html += '<div class="email-body">' + l.email_body.replace(/\n/g, '<br>') + '</div>';
+      html += '<button class="btn btn-small btn-secondary" style="margin-top:8px" onclick="copyText(\'' + escapeJs(l.email_body) + '\', this)">Copier</button>';
       html += '</div></div>';
     }
 
-    if (l.sms) {
-      html += '<button class="toggle-email" onclick="var el=document.getElementById(\'' + id + '-sms\');el.style.display=el.style.display===\'none\'?\'block\':\'none\'">📱 Voir le SMS</button>';
-      html += '<div id="' + id + '-sms" style="display:none;margin-top:8px">';
-      html += '<div class="sms-section">';
-      html += '<div class="email-label">SMS de suivi</div>';
-      html += '<div class="sms-body">' + l.sms + '</div>';
-      html += '<button class="btn btn-copy" style="margin-top:10px" onclick="copyText(`' + l.sms.replace(/`/g, "'") + '`, this)">Copier le SMS</button>';
+    // SMS
+    if (l.sms_body) {
+      html += '<div class="collapsible"><button class="collapsible-toggle" onclick="toggle(\'sms-' + l.id + '\')">📱 Voir le SMS</button>';
+      html += '<div id="sms-' + l.id + '" class="collapsible-content hidden">';
+      html += '<div class="email-label">SMS</div>';
+      html += '<div style="font-size:12px;color:var(--text-light);line-height:1.5">' + l.sms_body + '</div>';
+      html += '<button class="btn btn-small btn-secondary" style="margin-top:8px" onclick="copyText(\'' + escapeJs(l.sms_body) + '\', this)">Copier</button>';
       html += '</div></div>';
     }
 
-    html += '<div class="actions" style="margin-top:12px">';
-    html += '<button class="btn btn-sent' + (isSent ? ' done' : '') + '" onclick="toggleSent(\'' + l.name.replace(/'/g, "\\'") + '\')">' + (isSent ? '✓ Envoyé' : '☐ Marquer envoyé') + '</button>';
-    html += '</div>';
-
-    html += '</div>';
+    // Actions
+    html += '<div class="actions">';
+    if (canClaim) {
+      html += '<button class="status-btn" onclick="claimLead(\'' + l.id + '\')">✋ Prendre ce lead</button>';
+    }
+    if (isAssignedToMe || isAdmin) {
+      html += '<button class="status-btn ' + (l.status === 'emailed' ? 'active-emailed' : '') + '" onclick="setStatus(\'' + l.id + '\',\'emailed\')">📧 Envoyé</button>';
+      html += '<button class="status-btn ' + (l.status === 'replied' ? 'active-replied' : '') + '" onclick="setStatus(\'' + l.id + '\',\'replied\')">💬 Répondu</button>';
+      html += '<button class="status-btn ' + (l.status === 'sold' ? 'active-sold' : '') + '" onclick="setStatus(\'' + l.id + '\',\'sold\')">💰 Vendu</button>';
+      html += '<button class="status-btn ' + (l.status === 'rejected' ? 'active-rejected' : '') + '" onclick="setStatus(\'' + l.id + '\',\'rejected\')">❌ Rejeté</button>';
+    }
+    html += '</div></div>';
   });
 
-  container.innerHTML = html;
+  document.getElementById('leads-container').innerHTML = html;
 }
 
-renderLeads();
+function renderSellers() {
+  var html = '';
+  sellers.forEach(function(s) {
+    var myLeads = leads.filter(function(l) { return l.assigned_to === s.id; });
+    var emailed = myLeads.filter(function(l) { return l.status === 'emailed' || l.status === 'replied' || l.status === 'sold'; }).length;
+    var sold = myLeads.filter(function(l) { return l.status === 'sold'; }).length;
+    html += '<div class="seller-card"><div>';
+    html += '<div class="seller-name">' + s.name + (s.role === 'admin' ? ' 👑' : '') + '</div>';
+    html += '<div class="seller-email">' + s.email + '</div></div>';
+    html += '<div class="seller-stats">';
+    html += '<div class="seller-stat"><div class="seller-stat-num">' + myLeads.length + '</div><div style="font-size:10px;color:var(--text-muted)">Leads</div></div>';
+    html += '<div class="seller-stat"><div class="seller-stat-num" style="color:var(--warning)">' + emailed + '</div><div style="font-size:10px;color:var(--text-muted)">Envoyés</div></div>';
+    html += '<div class="seller-stat"><div class="seller-stat-num" style="color:var(--success)">' + sold + '</div><div style="font-size:10px;color:var(--text-muted)">Vendus</div></div>';
+    html += '</div></div>';
+  });
+  document.getElementById('sellers-container').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted)">Aucun vendeur</div>';
+}
+
+// Actions
+async function claimLead(id) {
+  await supabase.from('lead_businesses').update({ assigned_to: currentUser.id, status: 'assigned', assigned_at: new Date().toISOString() }).eq('id', id);
+  await loadData();
+}
+
+async function setStatus(id, status) {
+  var update = { status: status };
+  if (status === 'emailed') update.emailed_at = new Date().toISOString();
+  if (status === 'replied') update.replied_at = new Date().toISOString();
+  if (status === 'sold') update.sold_at = new Date().toISOString();
+  await supabase.from('lead_businesses').update(update).eq('id', id);
+  await loadData();
+}
+
+function toggle(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+function copyText(text, btn) {
+  try { navigator.clipboard.writeText(text.replace(/\\n/g, '\n')); } catch(e) {}
+  var orig = btn.textContent;
+  btn.textContent = 'Copié!';
+  setTimeout(function() { btn.textContent = orig; }, 1500);
+}
+
+function escapeJs(str) {
+  return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+}
 </script>
 </body>
 </html>
