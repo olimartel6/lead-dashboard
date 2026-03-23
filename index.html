@@ -304,19 +304,23 @@ function renderMine() {
 
 function renderAdmin() {
   var h = '<div class="topbar"><h1>Admin <span>Panel</span></h1></div>';
+  var totalRevenue = leads.filter(function(l){return l.payment_amount}).reduce(function(sum,l){return sum+(l.payment_amount||0)},0);
   h += '<div class="stats"><div class="stat"><div class="stat-num">' + leads.length + '</div><div class="stat-label">Total leads</div></div>';
   h += '<div class="stat"><div class="stat-num">' + sellers.length + '</div><div class="stat-label">Vendeurs</div></div>';
-  h += '<div class="stat"><div class="stat-num" style="color:var(--success)">' + leads.filter(function(l){return l.status==='sold'}).length + '</div><div class="stat-label">Vendus</div></div></div>';
+  h += '<div class="stat"><div class="stat-num" style="color:var(--success)">' + leads.filter(function(l){return l.status==='sold'}).length + '</div><div class="stat-label">Vendus</div></div>';
+  h += '<div class="stat"><div class="stat-num" style="color:var(--success)">' + totalRevenue + '$</div><div class="stat-label">Revenus</div></div></div>';
 
   h += '<h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text-light)">VENDEURS</h3>';
   sellers.forEach(function(s) {
     var sl = leads.filter(function(l){return l.assigned_to===s.id});
     var sent = sl.filter(function(l){return['emailed','replied','sold'].includes(l.status)}).length;
     var sold = sl.filter(function(l){return l.status==='sold'}).length;
+    var rev = sl.filter(function(l){return l.payment_amount}).reduce(function(sum,l){return sum+(l.payment_amount||0)},0);
     h += '<div class="seller-row"><div><div class="seller-name">' + s.name + (s.role==='admin'?' 👑':'') + '</div><div class="seller-email">' + s.email + '</div></div>';
     h += '<div style="display:flex;gap:16px;font-size:12px;text-align:center"><div><div style="font-weight:700">' + sl.length + '</div><div style="color:var(--text-muted);font-size:10px">LEADS</div></div>';
     h += '<div><div style="font-weight:700;color:var(--warning)">' + sent + '</div><div style="color:var(--text-muted);font-size:10px">ENVOYÉS</div></div>';
-    h += '<div><div style="font-weight:700;color:var(--success)">' + sold + '</div><div style="color:var(--text-muted);font-size:10px">VENDUS</div></div></div></div>';
+    h += '<div><div style="font-weight:700;color:var(--success)">' + sold + '</div><div style="color:var(--text-muted);font-size:10px">VENDUS</div></div>';
+    h += '<div><div style="font-weight:700;color:var(--success)">' + rev + '$</div><div style="color:var(--text-muted);font-size:10px">REVENUS</div></div></div></div>';
   });
   document.getElementById('page-content').innerHTML = h;
 }
@@ -354,6 +358,23 @@ function renderLeadCard(l, mode) {
   }
 
   if (mode === 'mine') {
+    // Payment link section
+    if (l.payment_link) {
+      h += '<div style="background:var(--success-light);border-radius:10px;padding:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center">';
+      h += '<div><div style="font-size:11px;color:var(--success);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Lien de paiement</div>';
+      h += '<div style="font-size:14px;font-weight:700;color:var(--success);margin-top:2px">' + l.payment_amount + ' $ CAD</div></div>';
+      h += '<button class="copy-btn" style="background:var(--success);color:white;border:none" onclick="doCopy(\'' + esc(l.payment_link) + '\',this)">Copier le lien</button>';
+      h += '</div>';
+    } else {
+      h += '<div style="margin-top:10px">';
+      h += '<button class="expand-btn" onclick="toggle(\'pay-'+l.id+'\')">💳 Créer lien de paiement</button>';
+      h += '<div id="pay-'+l.id+'" class="expand-content hidden">';
+      h += '<div class="expand-label">Montant à charger ($ CAD)</div>';
+      h += '<input type="number" class="input" id="amount-'+l.id+'" placeholder="Ex: 800" style="margin-bottom:8px">';
+      h += '<button class="btn btn-primary btn-small" style="width:100%" onclick="createPaymentLink(\''+l.id+'\',\''+esc(l.name)+'\')">Générer le lien Stripe</button>';
+      h += '</div></div>';
+    }
+
     h += '<div class="status-actions">';
     h += '<button class="status-btn' + (l.status==='emailed'?' s-emailed':'') + '" onclick="setStatus(\''+l.id+'\',\'emailed\')">📧 Envoyé</button>';
     h += '<button class="status-btn' + (l.status==='replied'?' s-replied':'') + '" onclick="setStatus(\''+l.id+'\',\'replied\')">💬 Répondu</button>';
@@ -377,6 +398,33 @@ async function setStatus(id,s) {
   await SB.from('lead_businesses').update(u).eq('id',id);
   await loadData(); render();
 }
+async function createPaymentLink(leadId, businessName) {
+  var amountInput = document.getElementById('amount-' + leadId);
+  var amount = parseFloat(amountInput.value);
+  if (!amount || amount <= 0) { alert('Entrez un montant valide'); return; }
+
+  var session = await SB.auth.getSession();
+  var token = session.data.session.access_token;
+
+  var res = await fetch('https://ybmzhztsyyrpxgsempzz.supabase.co/functions/v1/create-payment-link', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibXpoenRzeXlycHhnc2VtcHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTU0MTgsImV4cCI6MjA4OTI3MTQxOH0.MBjRFHrF1viOaV1pJqNnQjxEk7mpzJo-DksHtbCk-ug',
+    },
+    body: JSON.stringify({ lead_id: leadId, amount: amount, business_name: businessName.replace(/\\'/g, "'") }),
+  });
+
+  var data = await res.json();
+  if (data.url) {
+    await loadData();
+    render();
+  } else {
+    alert('Erreur: ' + (data.error || 'Échec'));
+  }
+}
+
 function toggle(id){document.getElementById(id).classList.toggle('hidden')}
 function doCopy(t,btn){try{navigator.clipboard.writeText(t.replace(/\\n/g,'\n'))}catch(e){}var o=btn.textContent;btn.textContent='Copié!';setTimeout(function(){btn.textContent=o},1500)}
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n')}
