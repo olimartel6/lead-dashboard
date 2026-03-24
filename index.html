@@ -334,7 +334,7 @@ function renderLeadCard(l, mode) {
   h += '<div class="lead-contact">';
   if (l.phone) h += '<span>📞 ' + l.phone + '</span>';
   if (l.email) h += '<span>✉️ ' + l.email + '</span>';
-  if (l.site_current) h += '<a href="https://' + l.site_current + '" target="_blank">🌐 ' + l.site_current + '</a>';
+  if (l.site_current) { var siteUrl = l.site_current.startsWith('http') ? l.site_current : 'https://' + l.site_current; h += '<a href="' + siteUrl + '" target="_blank">🌐 ' + l.site_current.replace(/https?:\/\//g,'') + '</a>'; }
   h += '</div>';
 
   h += '<div class="lead-btns">';
